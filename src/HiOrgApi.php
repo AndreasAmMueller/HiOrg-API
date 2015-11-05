@@ -286,7 +286,7 @@ class HiOrgApi {
 	 *
 	 * @param string $filter filter to search in ressources. Has to be at least 2 chars long.
 	 * @param int    $begin  unix timestamp to search ressources available from (optional).
-	 * @param int    $end    unix timestamp to search ressourcest available to (optional).
+	 * @param int    $end    unix timestamp to search ressources available to (optional).
 	 *
 	 * @return object[] with all available ressources or false on error.
 	 */
@@ -393,6 +393,44 @@ class HiOrgApi {
 		}
 	}
 
+	/**
+	 * Same function as self::extract_personnel_hours().
+	 * This time as non-static function.
+	 *
+	 * @param object $operation Object of operation to extract data.
+	 *
+	 * @return object[] Array of personnel objects to write hours.
+	*/
+	public function efs_extract_personnel_hours($operation) {
+		return self::extract_personnel_hours($operation);
+	}
+
+	/**
+	 * Extracts all relevant data from operation and parses
+	 * new array to write hours of duty.
+	 *
+	 * @param object $operation Object of operation to extract data.
+	 *
+	 * @return object[] Array of personnel objects to write hours.
+	*/
+	public static function extract_personnel_hours($operation) {
+		$begin = $operation->beginn;
+		$end = $operation->end;
+
+		$personnel = array();
+
+		$active_personnel = $operation->einsatzkraefte_imeinsatz;
+
+		foreach ($active_personnel as $id => $pers) {
+			$p = new \stdClass();
+			$p->hiorg_ek_id = $pers->hiorg_ek_id;
+			$p->start = $begin;
+			$p->ende = $end;
+			$personnel[] = $p;
+		}
+
+		return $personnel;
+	}
 
 
 	/**
