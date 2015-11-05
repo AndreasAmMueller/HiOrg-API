@@ -2,24 +2,39 @@
 
 -----
 
-Diese Klasse implementiert API Schnittstellen des HiOrg Servers (zu finden unter [hiorg-server.de](https://info.hiorg-server.de/)).
+Diese Klasse implementiert die APIs des HiOrg Servers (zu finden unter [hiorg-server.de](https://info.hiorg-server.de/)).
+
+Die Funktionalität der Klasse wird im [Wiki](https://bitbucket.org/BlackyPanther/hiorg-api/wiki/Home) beschrieben.
+
+
 
 ## Implementierte Interfaces
 
+-----
+
 __Einsatz-Führungs-Software (EFS):__
 
-Diese API wird vollständig implementiert. (2015-11-04)
+Dieses API wird vollständig implementiert. (2015-11-04)
 
 __Single-Sign-On (SSO):__
 
-Diese API wird vollständig impelementiert. (2015-11-04)
+Dieses API wird vollständig impelementiert. (2015-11-05)
+
 
 
 ## Changelog
 
+-----
+
+__2015-11-05:__
+
+Vollständige Implementierung der SSO Schnittstelle.
+
 __2015-11-04:__
 
-Initialer Commit in das Repository mit bereits bestehender Funktionalität.
+Vollständige Implementierung der EFS Schnittstelle.
+
+-----
 
 -----
 
