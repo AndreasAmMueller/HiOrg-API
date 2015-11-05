@@ -136,10 +136,41 @@ class HiOrgApi {
 			$url = 'http://dev.am-wd.de/sampler';
 		}
 
-		// default values
+		// URL stub for SSO actions.
 		$this->url_sso = 'https://www.hiorg-server.de/logmein.php';
+
+		// URL stub for EFS actions.
 		$this->url_efs = 'https://www.hiorg-server.de/api/efs/';
-		$this->url_token = $url.'/token.php';
+
+		// Url to receive token (as text without any thing else)
+		// for backend login (without redirect).
+		$this->url_token  = $url.'/token.php';
+		// Url to return to after successful login via SSO (not backend).
+		$this->url_return = null;
+		// Url to return to after user abort at SSO (not backend).
+		$this->url_abort  = null;
+		// Url to return to after user logout (not backend).
+		$this->url_logout = null;
+
+		// By default we will handle sso in backend actions.
+		// => no redirect to SSO page.
+		$this->sso_backend = true;
+
+		// List of data we wish to know.
+		$this->sso_data = array(
+			  'name'       // Lastname
+			, 'vorname'    // Firstname
+			, 'kuerzel'    // ident code (short)
+			, 'gruppe'     // sum of group ids
+			, 'perms'      // comma seperated permissions
+			, 'username'   // unique username for organisation
+			, 'email'      // e-mail address
+			, 'quali'      // id of qualification
+			, 'telpriv'    // telephone number at home
+			, 'teldienst'  // telephone number at work
+			, 'handy'      // mobile phone number
+			, 'user_id'    // unique user id of HiOrg Server
+		);
 	}
 
 
@@ -348,6 +379,15 @@ class HiOrgApi {
 
 
 
+	public function get_sso_token($)
+
+
+
+
+
+
+
+
 	// --- Private functions
 	// ===========================================================================
 
@@ -392,6 +432,7 @@ class HiOrgApi {
 
 		return json_decode($result);
 	}
+
 
 	/**
 	 * curl_exec_follow_location
