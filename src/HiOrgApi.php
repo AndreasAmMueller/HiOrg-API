@@ -19,7 +19,8 @@ namespace AMWD;
  * @copyright  (c) 2015 Andreas Mueller
  * @license    MIT - http://am-wd.de/index.php?p=about#license
  * @link       https://bitbucket.org/BlackyPanther/hiorg-api
- * @version    v1.0-20151104 | in developement
+ * @see        https://bitbucket.org/BlackyPanther/hiorg-api/wiki/Home
+ * @version    v1.0-20151105 | semi stable; no testcases
  */
 class HiOrgApi {
 
