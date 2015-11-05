@@ -56,8 +56,8 @@ class HiOrgApi {
 		}
 
 		$trace = debug_backtrace();
-		trigger_error('Undefined key for __get(): '
-		              .$name.' in '
+		trigger_error('Undefined key for __get(): "'
+		              .$name.'" in '
 		              .$trace[0]['file'].' at row '
 		              .$trace[0]['line']
 		, E_USER_NOTICE);
@@ -131,6 +131,8 @@ class HiOrgApi {
 			$tokenurl = str_replace($_SERVER['DOCUMENT_ROOT'], 'http://'.$_SERVER['HTTP_HOST'], __DIR__);
 			if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on")
 				$tokenurl = str_replace("http", "https", $tokenurl);
+
+			$tokenurl .= '/token.php';
 		} else {
 			$trace = debug_backtrace();
 			trigger_error('Unable to resolve url for token (url_token).'
@@ -150,13 +152,16 @@ class HiOrgApi {
 
 		// Url to receive token (as text without any thing else)
 		// for backend login (without redirect).
-		$this->url_token  = $tokenurl;
+		$this->url_token  = str_replace('localhost', '127.0.0.1', $tokenurl);
 		// Url to return to after successful login via SSO (not backend).
 		$this->url_return = null;
-		// Url to return to after user abort at SSO (not backend).
+		// Do not enforce user to login via HiOrg. If there is no active session
+		// (not logged in) return to this url (not backend).
 		$this->url_abort  = null;
 		// Url to return to after user logout (not backend).
 		$this->url_logout = null;
+		// Should the method redirect or return redirect url
+		$this->sso_autoredirect = true;
 
 		// By default we will handle sso in backend actions.
 		// => no redirect to SSO page.
@@ -395,7 +400,7 @@ class HiOrgApi {
 	 * If this class works as backend for an application (sso_backend => true)
 	 * The username and password have to be set as parameter and the method will
 	 * use the url_token to receive the authentification token (for data-request).
-	 * Otherwise the redirect url will be build and returned.
+	 * Otherwise the redirect url will be build and returned or redirected to SSO page.
 	 * 
 	 * @param string $user     Name of user at HiOrg Server.
 	 * @param string $password Password for user at HiOrg Server.
@@ -462,6 +467,12 @@ class HiOrgApi {
 				$uri[] = 'silent='.urlencode($this->url_abort);
 
 			$redirect = $this->url_sso.'?'.implode('&', $uri);
+
+			if ($this->sso_autoredirect) {
+				header('Location: '.$redirect);
+				exit;
+			}
+
 			return $redirect;
 		}
 	}
@@ -510,16 +521,16 @@ class HiOrgApi {
 			$encoded = mb_substr($result, 3);
 			$serialized = base64_decode($encoded);
 			$data = unserialize($serialized);
-			
+
+			if ($this->sso_autologout) {
+				$this->sso_logout($token);
+				$data['login_expires'] = time();
+			}
+
 			if ($data['ov'] != $this->code) {
 				$this->last_error = 'Wrong HiOrg Login Code (OV) returned.';
 				return false;
 			} else {
-				if ($this->sso_autologout) {
-					$this->sso_logout($token);
-					$data['login_expires'] = time();
-				}
-
 				return $data;
 			}
 		}
@@ -555,6 +566,11 @@ class HiOrgApi {
 
 		curl_close($ch);
 		unset($this->token);
+
+		if (!$this->sso_backend && $this->sso_logout != null && !empty($this->sso_logout)) {
+			header('Location: '.$this->sso_logout);
+			exit;
+		}
 
 		return true;
 	}
