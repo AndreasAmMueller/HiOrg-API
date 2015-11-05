@@ -6,6 +6,7 @@ Diese Klasse implementiert die APIs des HiOrg Servers (zu finden unter [hiorg-se
 
 Die Funktionalität der Klasse wird im [Wiki](https://bitbucket.org/BlackyPanther/hiorg-api/wiki/Home) beschrieben.
 
+Automatisch generiertes PHPDoc kann [hier](http://blackypanther.bitbucket.org/HiOrg-API/index.html) gefunden werden.
 
 
 ## Implementierte Interfaces

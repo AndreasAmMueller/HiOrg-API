@@ -360,8 +360,8 @@ class HiOrgApi {
 	/**
 	 * Writes working hours of personnel back to HiOrg server after duty.
 	 *
-	 * @param int $operation id of operation.
-	 * @param object[] Array with personnel id, start time and endtime each as unix timestamp.
+	 * @param int      $operation id of operation.
+	 * @param object[] $personnel Array with personnel id, start time and endtime each as unix timestamp.
 	 *
 	 * @throws \Exception because it's not implemented @HiOrg by now (v1.3 @ 13.05.2015)
 	 *

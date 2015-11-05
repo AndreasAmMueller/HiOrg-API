@@ -98,6 +98,6 @@ build/Release
 node_modules
 
 # Project specific
-doc
+docs
 tests/tmp
 output
