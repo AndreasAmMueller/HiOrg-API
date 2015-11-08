@@ -629,6 +629,9 @@ class HiOrgApi {
 	 * @return object with response.
 	 */
 	private function request_efs($action, $data = null) {
+		if (!self::is_available('hiorg-server.de'))
+			throw new \RuntimeException('HiOrg EFS API page not available.');
+
 		if ($data == null)
 			$data = new \stdClass();
 
@@ -730,7 +733,7 @@ class HiOrgApi {
 	 *
 	 * @param string $url     Hostname/Server (URL) or IP Address
 	 * @param int    $timeout Time for response in milliseconds
-	 * 
+	 *
 	 * @return bool true on successful connect, false on error (timeout)
 	 */
 	private static function is_available($url, $timeout = 1000) {
@@ -745,6 +748,7 @@ class HiOrgApi {
 			curl_close($ch);
 			return false;
 		}
+		curl_close($ch);
 
 		return true;
 	}
