@@ -491,7 +491,7 @@ class HiOrgApi {
 
 			$token = trim($lines[(count($lines)-1)]);
 
-			$this->token = $token;
+			$this->sso_token = $token;
 
 			return $token;
 		} else {
@@ -524,13 +524,13 @@ class HiOrgApi {
 	 * 
 	 * @param string $token Token we got from HiOrg Server to receive user infos.
 	 * 
-	 * @return mixed array with user infos on success, false on error.
+	 * @return mixed Object with user infos on success, false on error.
 	 */
 	public function sso_get_data($token = null) {
 		if ($token == null)
-			$token = $this->token;
+			$token = $this->sso_token;
 
-		$this->token = $token;
+		$this->sso_token = $token;
 		if ($token == null || empty($token)) {
 			$this->last_error = 'Token is not set.';
 			return false;
@@ -570,7 +570,11 @@ class HiOrgApi {
 				$this->last_error = 'Wrong HiOrg Login Code (OV) returned.';
 				return false;
 			} else {
-				return $data;
+				$return = new \stdClass();
+				foreach ($data as $key => $value)
+						$return->$key = $value;
+
+				return $return;
 			}
 		}
 	}
@@ -584,7 +588,7 @@ class HiOrgApi {
 	 */
 	public function sso_logout($token = null) {
 		if ($token == null)
-			$token = $this->token;
+			$token = $this->sso_token;
 
 		if ($token == null || empty($token)) {
 			$this->last_error = 'Token is not set.';
@@ -604,7 +608,7 @@ class HiOrgApi {
 		}
 
 		curl_close($ch);
-		unset($this->token);
+		unset($this->sso_token);
 
 		if (!$this->sso_backend && $this->sso_logout != null && !empty($this->sso_logout)) {
 			header('Location: '.$this->sso_logout);
