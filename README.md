@@ -6,7 +6,7 @@ Diese Klasse implementiert die APIs des HiOrg Servers (zu finden unter [hiorg-se
 
 Die Funktionalität der Klasse wird im [Wiki](https://bitbucket.org/BlackyPanther/hiorg-api/wiki/Home) beschrieben.
 
-Automatisch generiertes PHPDoc kann [hier](http://blackypanther.bitbucket.org/HiOrg-API/index.html) gefunden werden.
+Automatisch generiertes PHPDoc kann [hier](http://blackypanther.bitbucket.org/api/classes/AMWD.HiOrgApi.html) gefunden werden.
 
 
 ## Implementierte Interfaces
@@ -27,13 +27,7 @@ Dieses API wird vollständig impelementiert. (2015-11-05)
 
 -----
 
-__2015-11-05:__
-
-Vollständige Implementierung der SSO Schnittstelle.
-
-__2015-11-04:__
-
-Vollständige Implementierung der EFS Schnittstelle.
+Changelog kann [hier](CHANGELOG) gefunden werden.
 
 -----
 

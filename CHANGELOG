@@ -1,0 +1,9 @@
+Please see the CHANGELOG at master branch for current stable version.
+
+2015-11-05
+ - Full implementation of HiOrg's Single-Sign-On at https://www.hiorg-server.de/logmein.php
+
+2015-11-04
+ - Implementation of HiOrg's Einsatz-Führungs-Software API.
+   Described at https://wiki.hiorg-server.de/admin:efs
+
