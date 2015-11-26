@@ -145,6 +145,9 @@ class HiOrgApi {
 			$tokenurl = 'http://dev.am-wd.de/sampler/token.php';
 		}
 
+        // URL stub for HiOrg Login.
+        $this->url_hiorg = 'https://www.hiorg-server.de/index.php';
+
 		// URL stub for SSO actions.
 		$this->url_sso = 'https://www.hiorg-server.de/logmein.php';
 
@@ -187,6 +190,33 @@ class HiOrgApi {
 			, 'handy'      // mobile phone number
 			, 'user_id'    // unique user id of HiOrg Server
 		);
+		
+		// Path to save cookie information
+		$this->hiorg_cookie = tempnam(sys_get_temp_dir(), 'HiOrg.cookie');
+		
+		// Set some parameter to identify as 'human user'
+		if (php_sapi_name() === 'cli') {
+		    $this->hiorg_header = array(
+                'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Connection: keep-alive'
+            );
+            $this->hiorg_browser = 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0';
+		} else {
+		    $this->hiorg_header = array(
+                'Accept: '.$_SERVER['HTTP_ACCEPT'],
+                'Connection: '.$_SERVER['HTTP_CONNECTION']
+            );
+            $this->hiorg_browser = $_SERVER['HTTP_USER_AGENT'];
+		}
+	}
+	
+	/**
+	 * Finalizes an instance and cleanup.
+	 * 
+	 * @return void
+	 */
+	function __destruct() {
+	    @unlink($this->hiorg_cookie);
 	}
 
 
@@ -196,6 +226,13 @@ class HiOrgApi {
 
 	/**
 	 * Checks whether API key is valid or not.
+	 * 
+	 * Sends API key to server for evaluation. On success two additional values
+	 * will be sent too:
+	 * <br>
+	 * 1) Name of organisation (org_name).
+	 * <br>
+	 * 2) Unique HiOrg-Server id of organisation (org_id).
 	 *
 	 * @return bool true if key is valid, else false.
 	 */
@@ -618,6 +655,116 @@ class HiOrgApi {
 		return true;
 	}
 
+    /**
+     * Extracts all possible user information for users.
+     * 
+     * Using credentials of an user with administrative rights,
+     * try to extract all possible data from all users of your HiOrg Server.
+     * 
+     * @param string $username Username of admin.
+     * @param string $password Password of admin account.
+     * 
+     * @return object[] Array with information about users.
+     */
+    public function hiorg_extract_users($username, $password) {
+        if (!self::is_available($this->url_hiorg))
+			throw new \RuntimeException('HiOrg Login page not available.');
+        
+        // result array with all users
+        $user = array();
+
+        // Login user
+        $ch = curl_init($this->url_hiorg.'?ov='.$this->code);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+        curl_setopt($ch, CURLOPT_COOKIEJAR, $this->hiorg_cookie);
+        curl_setopt($ch, CURLOPT_COOKIEFILE, $this->hiorg_cookie);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->hiorg_header);
+        curl_setopt($ch, CURLOPT_USERAGENT, $this->hiorg_browser);
+        
+        // with credentials
+        $post = array();
+        $post[] = 'username='.$username;
+        $post[] = 'password='.$password;
+        $post[] = 'submit=Login';
+        
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, implode('&', $post));
+        
+        $res = self::curl_exec_follow_location($ch, 5);
+        
+        // get all users
+        $post = array();
+        $post[] = 'filter_colsum1=131328';
+        $post[] = 'filter_colsum2=0';
+        $post[] = 'filter_dist_bis=';
+        $post[] = 'filter_dist_von=';
+        $post[] = 'filter_fahrerlaubnis=';
+        $post[] = 'filter_fremdov=0';
+        $post[] = 'filter_geheim=0';
+        $post[] = 'filter_gruppe=2039';
+        $post[] = 'filter_gruppe_und=0';
+        $post[] = 'filter_gruppe_zusatz[]=keinegruppe';
+        $post[] = 'filter_leitung=0';
+        $post[] = 'filter_quali_bis=';
+        $post[] = 'filter_quali_von=';
+        $post[] = 'filter_scheine=';
+        
+        curl_setopt($ch, CURLOPT_URL, 'https://www.hiorg-server.de/ajax/mitglieder_liste.php');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, implode('&', $post));
+        
+        $res = self::curl_exec_follow_location($ch, 5);
+        $json = json_decode($res);
+        
+        curl_setopt($ch, CURLOPT_URL, 'https://www.hiorg-server.de/userliste.php');
+        curl_setopt($ch, CURLOPT_POST, false);
+        
+        $userliste = curl_exec($ch);
+        
+        // Logout and close connection
+        curl_setopt($ch, CURLOPT_URL, 'https://www.hiorg-server.de/logout.php');
+        curl_exec($ch);
+        curl_close($ch);
+        @unlink($this->hiorg_cookie);
+        
+        // json->zeilen:
+        // [1] lastname [2] firstname [3] ident code (short) [4] qualification
+        foreach ($json->zeilen as $row) {
+            $id = strstr($row[5], '_id=');
+            $cut = strstr($id, '&');
+            $id = str_replace('_id=', '', str_replace($cut, '', $id));
+            
+            $lastname = self::set_umlauts(self::hiorg_remove_warning($row[1]));
+            $lastname = str_replace('&lt;/span&gt;', '', $lastname);
+            $lastname = str_replace('&gt;', '', strstr($lastname, '&gt;'));
+            
+            $firstname = self::set_umlauts($row[2]);
+            $sign = $row[3];
+            
+            $username = self::set_umlauts(strstr($userliste, 'simuser='.$id));
+            $cut = strstr($username, '<');
+            $username = str_replace("simuser=$id' title='diesen Benutzer simulieren'>", '', str_replace($cut, '', $username));
+            
+            $perms = strstr($cut, 'helfer');
+            $cut = strstr($perms, '<');
+            $perms = str_replace($cut, '', $perms);
+            
+            $obj = new \stdClass();
+            $obj->user_id = $id;
+            $obj->username = $username;
+            $obj->name = $lastname;
+            $obj->vorname = $firstname;
+            $obj->kuerzel = $sign;
+            $obj->perms = $perms;
+            
+            $user[] = $obj;
+        }
+        
+        return $user;
+    }
+
 
 	// --- Private functions
 	// ===========================================================================
@@ -767,6 +914,34 @@ class HiOrgApi {
 	 */
 	private static function mb_trim($str, $trim = '\s') {
 		return preg_replace('/^['.$trim.']*(?U)(.*)['.$trim.']*$/u', '\\1', $str);
+	}
+	
+	/**
+	 * Replaces urlencoded umlauts with 'real' ones.
+	 * 
+	 * @param string $str String to replace in.
+	 * 
+	 * @return string replaced string.
+	 */
+	private static function set_umlauts($str) {
+	    $srch = array('&amp;', '&auml;', '&Auml;', '&ouml;', '&Ouml;', '&uuml;', '&Uuml;', '&szlig;');
+	    $repl = array('&',     'ä',      'Ä',      'ö',      'Ö',      'ü',      'Ü',      'ß');
+	    
+	    return str_replace($srch, $repl, $str);
+	}
+
+    /**
+     * Removes warnings in HTML encoded from string.
+     * 
+     * @param string $str String with warnings.
+     * 
+     * @return string String without warnings.
+     */
+	private static function hiorg_remove_warning($str) {
+	    $str = str_replace(" &lt;img src='static/content/pics/warn_rot.gif' title='Helfer ist &lt; 16 Jahre' alt='Helfer ist &lt; 16 Jahre' /&gt;", '', $str);
+	    $str = str_replace(" &lt;img src='static/content/pics/warn_gelb.gif' title='Helfer ist &lt; 18 Jahre' alt='Helfer ist &lt; 18 Jahre' /&gt;", '', $str);
+
+	    return $str;
 	}
 }
 
