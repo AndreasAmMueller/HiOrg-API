@@ -226,6 +226,13 @@ class HiOrgApi {
 
 	/**
 	 * Checks whether API key is valid or not.
+	 * 
+	 * Sends API key to server for evaluation. On success two additional values
+	 * will be sent too:
+	 * <br>
+	 * 1) Name of organisation (org_name).
+	 * <br>
+	 * 2) Unique HiOrg-Server id of organisation (org_id).
 	 *
 	 * @return bool true if key is valid, else false.
 	 */

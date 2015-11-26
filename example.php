@@ -21,6 +21,9 @@ if (php_sapi_name() === 'cli') {
 	echo "Check API Key: ";
 	print_r($api->efs_check_apikey());
 	echo PHP_EOL;
+	echo "Org. Name: ".$api->org_name.PHP_EOL;
+	echo "Org. ID: ".$api->org_id.PHP_EOL;
+	echo PHP_EOL;
 
 	echo "Get list of operations:".PHP_EOL;
 	print_r($ops = $api->efs_get_operations());
@@ -54,6 +57,8 @@ if (php_sapi_name() === 'cli') {
 	print_r($user);
 	echo PHP_EOL;
 } else {
+	header("Content-Type: text/html;charset=UTF-8");
+
 	// --- HTTP service
 	// ==========================================================================
 	session_name('HiOrgApi');
@@ -102,6 +107,8 @@ if (php_sapi_name() === 'cli') {
 		$valid = $api->efs_check_apikey();
 
 		$content[] = 'API Key gültig: '.($valid ? 'Ja' : 'Nein');
+		$content[] = 'Org. Name: '.$api->org_name;
+		$content[] = 'Org. ID: '.$api->org_id;
 
 		if ($valid) {
 			$ops = $api->efs_get_operations();
