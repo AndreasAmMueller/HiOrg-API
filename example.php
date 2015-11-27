@@ -10,7 +10,7 @@ if (php_sapi_name() === 'cli') {
 	// define needed vars
 	$ov = 'aerh';
 	$apikey = '';
-	$usersername = '';
+	$username = '';
 	$password = '';
 
 	// include class

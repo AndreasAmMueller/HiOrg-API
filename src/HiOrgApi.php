@@ -20,7 +20,7 @@ namespace AMWD;
  * @license    MIT - http://am-wd.de/index.php?p=about#license
  * @link       https://bitbucket.org/BlackyPanther/hiorg-api
  * @see        https://bitbucket.org/BlackyPanther/hiorg-api/wiki/Home
- * @version    v1.0-20151105 | semi stable; no testcases
+ * @version    v1.0-20151127 | semi stable; no testcases
  */
 class HiOrgApi {
 
@@ -188,7 +188,8 @@ class HiOrgApi {
 			, 'telpriv'    // telephone number at home
 			, 'teldienst'  // telephone number at work
 			, 'handy'      // mobile phone number
-			, 'user_id'    // unique user id of HiOrg Server
+			, 'user_id'    // unique alphanumeric user id of HiOrg Server
+			, 'id'         // unique numeric user id of HiOrg Server (corresponding to EFS hiorg_ek_id)
 		);
 		
 		// Path to save cookie information
